@@ -37,16 +37,12 @@ let SupabaseService = class SupabaseService {
     url;
     key;
     constructor(c) { this.url = c.getOrThrow('SUPABASE_URL').replace(/\/$/, ''); this.key = c.get('SUPABASE_SERVICE_ROLE_KEY') ?? c.getOrThrow('SUPABASE_SECRET_KEY'); }
-    async query(table, o = {}) {
-        const p = new URLSearchParams(o.query); const r = await fetch(this.url + '/rest/v1/' + table + (p.size ? '?' + p : ''), { method: o.method ?? 'GET', headers: { apikey: this.key, Authorization: 'Bearer ' + this.key, 'Content-Type': 'application/json', Prefer: 'return=representation' }, body: o.body === undefined ? undefined : JSON.stringify(o.body) }); if (!r.ok)
-            throw new Error('Supabase ' + r.status + ': ' + await r.text()); if (r.status === 204)
-            return []; return await r.json();
-    }
+    async query(table, o = {}) { const p = new URLSearchParams(o.query); const r = await fetch(this.url + '/rest/v1/' + table + (p.size ? '?' + p : ''), { method: o.method ?? 'GET', headers: { apikey: this.key, Authorization: 'Bearer ' + this.key, 'Content-Type': 'application/json', Prefer: 'return=representation' }, body: o.body === undefined ? undefined : JSON.stringify(o.body) }); if (!r.ok)
+        throw new Error('Supabase ' + r.status + ': ' + await r.text()); if (r.status === 204)
+        return []; return await r.json(); }
     async list(t, q = {}) { return this.query(t, { query: q }); }
-    async one(t, q) {
-        const rows = await this.list(t, { ...q, limit: '1' }); if (!rows[0])
-            throw new NotFoundException('Ressource introuvable'); return rows[0];
-    }
+    async one(t, q) { const rows = await this.list(t, { ...q, limit: '1' }); if (!rows[0])
+        throw new NotFoundException('Ressource introuvable'); return rows[0]; }
 };
 SupabaseService = __decorate([
     Injectable(),
@@ -136,11 +132,9 @@ __decorate([
 export const Roles = (...r) => SetMetadata('roles', r);
 export const Public = () => SetMetadata('public', true);
 let RolesGuard = class RolesGuard {
-    canActivate(c) {
-        const roles = Reflect.getMetadata('roles', c.getHandler()); if (!roles)
-            return true; const u = c.switchToHttp().getRequest().user; if (!u || !roles.includes(u.role))
-            throw new ForbiddenException('Action non autorisée'); return true;
-    }
+    canActivate(c) { const roles = Reflect.getMetadata('roles', c.getHandler()); if (!roles)
+        return true; const u = c.switchToHttp().getRequest().user; if (!u || !roles.includes(u.role))
+        throw new ForbiddenException('Action non autorisée'); return true; }
 };
 RolesGuard = __decorate([
     Injectable()
@@ -160,10 +154,8 @@ JwtStrategy = __decorate([
 ], JwtStrategy);
 export { JwtStrategy };
 let JwtAuthGuard = class JwtAuthGuard extends AuthGuard('jwt') {
-    canActivate(c) {
-        if (Reflect.getMetadata('public', c.getHandler()))
-            return true; return super.canActivate(c);
-    }
+    canActivate(c) { if (Reflect.getMetadata('public', c.getHandler()))
+        return true; return super.canActivate(c); }
 };
 JwtAuthGuard = __decorate([
     Injectable()
@@ -176,10 +168,8 @@ let AuthController = class AuthController {
         this.db = db;
         this.jwt = jwt;
     }
-    async login(d) {
-        const u = await this.db.one('users', { email: 'eq.' + d.email, active: 'eq.true' }); if (!u.password_hash || !(await bcrypt.compare(d.password, String(u.password_hash))))
-            throw new UnauthorizedException('Identifiants invalides'); return { accessToken: await this.jwt.signAsync({ sub: u.id, role: u.role }), user: { id: u.id, name: u.name, email: u.email, role: u.role } };
-    }
+    async login(d) { const u = await this.db.one('users', { email: 'eq.' + d.email, active: 'eq.true' }); if (!u.password_hash || !(await bcrypt.compare(d.password, String(u.password_hash))))
+        throw new UnauthorizedException('Identifiants invalides'); return { accessToken: await this.jwt.signAsync({ sub: u.id, role: u.role }), user: { id: u.id, name: u.name, email: u.email, role: u.role } }; }
     me(r) { const { password_hash: _, ...safe } = r.user; return safe; }
 };
 __decorate([
@@ -301,16 +291,12 @@ let OrdersController = class OrdersController {
     }
     list() { return this.db.list('orders', { select: '*,created_by:users(id,name,email)', order: 'created_at.desc' }); }
     get(id) { return this.db.one('orders', { id: 'eq.' + id }); }
-    async status(id, d) {
-        const o = await this.db.one('orders', { id: 'eq.' + id }); const a = { PENDING: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED], CONFIRMED: [OrderStatus.PREPARING, OrderStatus.CANCELLED], PREPARING: [OrderStatus.READY], READY: [OrderStatus.COMPLETED], COMPLETED: [], CANCELLED: [] }; if (!a[o.status].includes(d.status))
-            throw new ForbiddenException('Transition de statut impossible'); return this.db.query('orders', { method: 'PATCH', query: { id: 'eq.' + id }, body: { status: d.status } });
-    }
-    async create(d, r) {
-        const lines = []; for (const i of d) {
-            const p = await this.db.one('products', { id: 'eq.' + i.productId, available: 'eq.true' });
-            lines.push({ productId: String(p.id), name: String(p.name), unitPrice: Number(p.price), quantity: i.quantity });
-        } return this.db.query('orders', { method: 'POST', body: { number: 'CMD-' + Date.now(), lines, total: lines.reduce((s, l) => s + l.unitPrice * l.quantity, 0), status: OrderStatus.PENDING, created_by: r.user.id } });
-    }
+    async status(id, d) { const o = await this.db.one('orders', { id: 'eq.' + id }); const a = { PENDING: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED], CONFIRMED: [OrderStatus.PREPARING, OrderStatus.CANCELLED], PREPARING: [OrderStatus.READY], READY: [OrderStatus.COMPLETED], COMPLETED: [], CANCELLED: [] }; if (!a[o.status].includes(d.status))
+        throw new ForbiddenException('Transition de statut impossible'); return this.db.query('orders', { method: 'PATCH', query: { id: 'eq.' + id }, body: { status: d.status } }); }
+    async create(d, r) { const lines = []; for (const i of d) {
+        const p = await this.db.one('products', { id: 'eq.' + i.productId, available: 'eq.true' });
+        lines.push({ productId: String(p.id), name: String(p.name), unitPrice: Number(p.price), quantity: i.quantity });
+    } return this.db.query('orders', { method: 'POST', body: { number: 'CMD-' + Date.now(), lines, total: lines.reduce((s, l) => s + l.unitPrice * l.quantity, 0), status: OrderStatus.PENDING, created_by: r.user.id } }); }
 };
 __decorate([
     Get(),
