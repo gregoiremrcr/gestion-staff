@@ -37,10 +37,13 @@ jobs:
           mkdir -p /tmp/oxlint-native
           mkdir -p apps/api/node_modules/@oxlint/binding-linux-x64-gnu
           mkdir -p apps/api/node_modules/@oxlint-tsgolint/linux-x64
+          mkdir -p apps/api/node_modules/@rolldown/binding-linux-x64-gnu
           npm pack @oxlint/binding-linux-x64-gnu@1.91.0 --pack-destination /tmp/oxlint-native
           npm pack @oxlint-tsgolint/linux-x64@7.0.2006 --pack-destination /tmp/oxlint-native
+          npm pack @rolldown/binding-linux-x64-gnu@1.2.16 --pack-destination /tmp/oxlint-native
           tar -xzf /tmp/oxlint-native/oxlint-binding-linux-x64-gnu-1.91.0.tgz -C apps/api/node_modules/@oxlint/binding-linux-x64-gnu --strip-components=1
           tar -xzf /tmp/oxlint-native/oxlint-tsgolint-linux-x64-7.0.2006.tgz -C apps/api/node_modules/@oxlint-tsgolint/linux-x64 --strip-components=1
+          tar -xzf /tmp/oxlint-native/rolldown-binding-linux-x64-gnu-1.2.16.tgz -C apps/api/node_modules/@rolldown/binding-linux-x64-gnu --strip-components=1
 
       - name: Lint API
         run: npm run lint:api
