@@ -51,3 +51,6 @@ Les endpoints sensibles sont protégés par JWT et RBAC : ADMIN et MANAGER admin
 ## Limites connues
 
 Le POC ne couvre pas encore l’édition complète des employés, la pagination avancée, les notifications temps réel ni les paramètres détaillés du restaurant. MongoDB doit être démarré avant l’API et les tests d’intégration.
+
+mdp supabase
+Gestionstaff1234

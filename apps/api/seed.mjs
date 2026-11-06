@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
-const url=process.env.SUPABASE_URL, key=process.env.SUPABASE_SERVICE_ROLE_KEY;
-if(!url||!key)throw new Error('SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY sont requis');
+const url=process.env.SUPABASE_URL, key=process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY;
+if(!url||!key)throw new Error('SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY (ou SUPABASE_SECRET_KEY) sont requis');
 async function q(table,method='GET',body){const r=await fetch(url+'/rest/v1/'+table,{method,headers:{apikey:key,Authorization:'Bearer '+key,'Content-Type':'application/json',Prefer:'return=representation'},body:body?JSON.stringify(body):undefined});if(!r.ok)throw new Error(await r.text());return r.status===204?[]:r.json();}
 for(const table of ['orders','products','categories','users'])await q(table,'DELETE');
 const hash=await bcrypt.hash('Admin123!',12),managerHash=await bcrypt.hash('Manager123!',12),staffHash=await bcrypt.hash('Staff123!',12);

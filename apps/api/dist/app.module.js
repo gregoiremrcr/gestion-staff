@@ -36,7 +36,7 @@ export var OrderStatus;
 let SupabaseService = class SupabaseService {
     url;
     key;
-    constructor(c) { this.url = c.getOrThrow('SUPABASE_URL').replace(/\/$/, ''); this.key = c.getOrThrow('SUPABASE_SERVICE_ROLE_KEY'); }
+    constructor(c) { this.url = c.getOrThrow('SUPABASE_URL').replace(/\/$/, ''); this.key = c.get('SUPABASE_SERVICE_ROLE_KEY') ?? c.getOrThrow('SUPABASE_SECRET_KEY'); }
     async query(table, o = {}) { const p = new URLSearchParams(o.query); const r = await fetch(this.url + '/rest/v1/' + table + (p.size ? '?' + p : ''), { method: o.method ?? 'GET', headers: { apikey: this.key, Authorization: 'Bearer ' + this.key, 'Content-Type': 'application/json', Prefer: 'return=representation' }, body: o.body === undefined ? undefined : JSON.stringify(o.body) }); if (!r.ok)
         throw new Error('Supabase ' + r.status + ': ' + await r.text()); if (r.status === 204)
         return []; return await r.json(); }
