@@ -168,7 +168,7 @@ let AuthController = class AuthController {
         this.db = db;
         this.jwt = jwt;
     }
-    async login(d) { const u = await this.db.one('users', { email: 'eq.' + d.email, active: 'eq.true' }); if (!u.password_hash || !(await bcrypt.compare(d.password, String(u.password_hash))))
+    async login(d) { const u = await this.db.one('users', { email: 'eq.' + d.email, active: 'eq.true' }); const passwordHash = typeof u.password_hash === 'string' ? u.password_hash : ''; if (!passwordHash || !(await bcrypt.compare(d.password, passwordHash)))
         throw new UnauthorizedException('Identifiants invalides'); return { accessToken: await this.jwt.signAsync({ sub: u.id, role: u.role }), user: { id: u.id, name: u.name, email: u.email, role: u.role } }; }
     me(r) { const { password_hash: _, ...safe } = r.user; return safe; }
 };

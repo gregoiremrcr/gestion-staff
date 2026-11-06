@@ -31,9 +31,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Restore native optional dependencies
+      - name: Install API dependencies with native optional binaries
         working-directory: apps/api
-        run: npm install --no-save --package-lock=false --force @oxlint/binding-linux-x64-gnu@1.91.0 @oxlint-tsgolint/linux-x64@7.0.2006
+        run: npm ci --include=optional
 
       - name: Lint API
         run: npm run lint:api
