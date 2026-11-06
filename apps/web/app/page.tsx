@@ -1,6 +1,171 @@
 "use client";
 import { useEffect, useState } from "react";
-const API=process.env.NEXT_PUBLIC_API_URL||"http://localhost:3001/api";
-type User={name:string;role:string}; type Status={_id:string;count:number}; type Dashboard={orders:number;revenue:number;activeOrders:number;byStatus:Status[]}; type LoginResponse={accessToken:string;user:User};
-async function api(path:string, options:RequestInit={}):Promise<unknown>{const token=localStorage.getItem("staff_token");const r=await fetch(API+path,{...options,headers:{"Content-Type":"application/json",...(token?{Authorization:`Bearer ${token}`}:{})}});if(!r.ok)throw new Error("Erreur de connexion");return r.json()}
-export default function Home(){const [user,setUser]=useState<User|null>(null),[data,setData]=useState<Dashboard|null>(null),[email,setEmail]=useState("admin@restaurant.fr"),[password,setPassword]=useState("Admin123!"),[error,setError]=useState("");useEffect(()=>{if(localStorage.getItem("staff_token"))api("/auth/me").then(u=>{setUser(u as User);return api("/analytics/dashboard")}).then(u=>setData(u as Dashboard)).catch(()=>localStorage.removeItem("staff_token"))},[]);async function login(e:React.FormEvent){e.preventDefault();try{const d=await api("/auth/login",{method:"POST",body:JSON.stringify({email,password})}) as LoginResponse;localStorage.setItem("staff_token",d.accessToken);setUser(d.user);setData(await api("/analytics/dashboard") as Dashboard)}catch{setError("Identifiants invalides ou API indisponible")}}if(!user)return <main className="login"><section><div className="mark">GS</div><p className="eyebrow">GESTION STAFF</p><h1>Le service, en ordre.</h1><p className="muted">Pilotez votre restaurant depuis un espace simple et opérationnel.</p><form onSubmit={login}><label>Email<input type="email" value={email} onChange={e=>setEmail(e.target.value)}/></label><label>Mot de passe<input type="password" value={password} onChange={e=>setPassword(e.target.value)}/></label>{error&&<p className="error">{error}</p>}<button>Se connecter</button></form><small>Démo : admin@restaurant.fr · Admin123!</small></section><aside><span>01 / PILOTAGE</span><h2>Une vision claire de chaque service.</h2></aside></main>;return <main className="layout"><aside className="side"><div className="logo"><b>GS</b><strong>Gestion Staff<small>Restaurant central</small></strong></div><nav><a className="selected">Vue d’ensemble</a><a>Commandes</a><a>Produits</a><a>Catégories</a><a>Équipe</a></nav><button className="logout" onClick={()=>{localStorage.removeItem("staff_token");setUser(null)}}>Se déconnecter</button></aside><section className="content"><header><div><p className="eyebrow">{user.role==='STAFF'?'ESPACE OPÉRATIONNEL':'ESPACE ADMINISTRATION'}</p><h1>Bonjour, {user.name.split(' ')[0]} <span>✦</span></h1></div><small>Vendredi 06 novembre 2026</small></header><div className="hero"><p>● Service en cours</p><h2>Voici votre activité du jour.</h2><span>Les indicateurs se mettent à jour à chaque commande.</span></div><div className="cards"><article><small>COMMANDES</small><b>{data?.orders??'—'}</b><span>Total enregistré</span></article><article><small>CHIFFRE D’AFFAIRES</small><b>{data?`${data.revenue.toFixed(2)} €`:'—'}</b><span>Hors commandes annulées</span></article><article><small>EN COURS</small><b>{data?.activeOrders??'—'}</b><span>À traiter</span></article></div><section className="panel"><p className="eyebrow">SUIVI OPÉRATIONNEL</p><h2>Commandes par statut</h2>{(data?.byStatus??[]).map(x=><div className="row" key={x._id}><strong>{x._id}</strong><i><em style={{width:`${Math.min(100,x.count*15)}%`}}/></i><b>{x.count}</b></div>)}</section></section></main>}
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+type User = { name: string; role: string };
+type Status = { _id: string; count: number };
+type Dashboard = {
+  orders: number;
+  revenue: number;
+  activeOrders: number;
+  byStatus: Status[];
+};
+type LoginResponse = { accessToken: string; user: User };
+async function api(path: string, options: RequestInit = {}): Promise<unknown> {
+  const token = localStorage.getItem("staff_token");
+  const r = await fetch(API + path, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+  if (!r.ok) throw new Error("Erreur de connexion");
+  return r.json();
+}
+export default function Home() {
+  const [user, setUser] = useState<User | null>(null),
+    [data, setData] = useState<Dashboard | null>(null),
+    [email, setEmail] = useState("admin@restaurant.fr"),
+    [password, setPassword] = useState("Admin123!"),
+    [error, setError] = useState("");
+  useEffect(() => {
+    if (localStorage.getItem("staff_token"))
+      api("/auth/me")
+        .then((u) => {
+          setUser(u as User);
+          return api("/analytics/dashboard");
+        })
+        .then((u) => setData(u as Dashboard))
+        .catch(() => localStorage.removeItem("staff_token"));
+  }, []);
+  async function login(e: React.FormEvent) {
+    e.preventDefault();
+    try {
+      const d = (await api("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email, password }),
+      })) as LoginResponse;
+      localStorage.setItem("staff_token", d.accessToken);
+      setUser(d.user);
+      setData((await api("/analytics/dashboard")) as Dashboard);
+    } catch {
+      setError("Identifiants invalides ou API indisponible");
+    }
+  }
+  if (!user)
+    return (
+      <main className="login">
+        <section>
+          <div className="mark">GS</div>
+          <p className="eyebrow">GESTION STAFF</p>
+          <h1>Le service, en ordre.</h1>
+          <p className="muted">
+            Pilotez votre restaurant depuis un espace simple et opérationnel.
+          </p>
+          <form onSubmit={login}>
+            <label>
+              Email
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </label>
+            <label>
+              Mot de passe
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </label>
+            {error && <p className="error">{error}</p>}
+            <button>Se connecter</button>
+          </form>
+          <small>Démo : admin@restaurant.fr · Admin123!</small>
+        </section>
+        <aside>
+          <span>01 / PILOTAGE</span>
+          <h2>Une vision claire de chaque service.</h2>
+        </aside>
+      </main>
+    );
+  return (
+    <main className="layout">
+      <aside className="side">
+        <div className="logo">
+          <b>GS</b>
+          <strong>
+            Gestion Staff<small>Restaurant central</small>
+          </strong>
+        </div>
+        <nav>
+          <a className="selected">Vue d’ensemble</a>
+          <a>Commandes</a>
+          <a>Produits</a>
+          <a>Catégories</a>
+          <a>Équipe</a>
+        </nav>
+        <button
+          className="logout"
+          onClick={() => {
+            localStorage.removeItem("staff_token");
+            setUser(null);
+          }}
+        >
+          Se déconnecter
+        </button>
+      </aside>
+      <section className="content">
+        <header>
+          <div>
+            <p className="eyebrow">
+              {user.role === "STAFF"
+                ? "ESPACE OPÉRATIONNEL"
+                : "ESPACE ADMINISTRATION"}
+            </p>
+            <h1>
+              Bonjour, {user.name.split(" ")[0]} <span>✦</span>
+            </h1>
+          </div>
+          <small>Vendredi 06 novembre 2026</small>
+        </header>
+        <div className="hero">
+          <p>● Service en cours</p>
+          <h2>Voici votre activité du jour.</h2>
+          <span>Les indicateurs se mettent à jour à chaque commande.</span>
+        </div>
+        <div className="cards">
+          <article>
+            <small>COMMANDES</small>
+            <b>{data?.orders ?? "—"}</b>
+            <span>Total enregistré</span>
+          </article>
+          <article>
+            <small>CHIFFRE D’AFFAIRES</small>
+            <b>{data ? `${data.revenue.toFixed(2)} €` : "—"}</b>
+            <span>Hors commandes annulées</span>
+          </article>
+          <article>
+            <small>EN COURS</small>
+            <b>{data?.activeOrders ?? "—"}</b>
+            <span>À traiter</span>
+          </article>
+        </div>
+        <section className="panel">
+          <p className="eyebrow">SUIVI OPÉRATIONNEL</p>
+          <h2>Commandes par statut</h2>
+          {(data?.byStatus ?? []).map((x) => (
+            <div className="row" key={x._id}>
+              <strong>{x._id}</strong>
+              <i>
+                <em style={{ width: `${Math.min(100, x.count * 15)}%` }} />
+              </i>
+              <b>{x.count}</b>
+            </div>
+          ))}
+        </section>
+      </section>
+    </main>
+  );
+}

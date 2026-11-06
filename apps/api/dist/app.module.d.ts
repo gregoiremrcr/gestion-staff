@@ -145,4 +145,4 @@ export declare class HealthController {
 }
 export declare class AppModule {
 }
-export {};
+export { };
